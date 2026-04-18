@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "Home",
+    "category": "Categories",
+    "search": "Search",
+    "cart": "Cart",
+    "mypage": "My page"
+  },
+  "common": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out",
+    "search": "Search"
+  },
+  "product": {
+    "addToCart": "Add to cart",
+    "buyNow": "Buy now",
+    "price": "Price",
+    "reviews": "Reviews"
+  }
+}

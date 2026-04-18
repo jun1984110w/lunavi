@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "홈",
+    "category": "카테고리",
+    "search": "검색",
+    "cart": "장바구니",
+    "mypage": "마이페이지"
+  },
+  "common": {
+    "login": "로그인",
+    "signup": "회원가입",
+    "logout": "로그아웃",
+    "search": "검색"
+  },
+  "product": {
+    "addToCart": "장바구니 담기",
+    "buyNow": "바로 구매",
+    "price": "가격",
+    "reviews": "리뷰"
+  }
+}

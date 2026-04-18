@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "category": "Danh mục",
+    "search": "Tìm kiếm",
+    "cart": "Giỏ hàng",
+    "mypage": "Tài khoản"
+  },
+  "common": {
+    "login": "Đăng nhập",
+    "signup": "Đăng ký",
+    "logout": "Đăng xuất",
+    "search": "Tìm kiếm"
+  },
+  "product": {
+    "addToCart": "Thêm vào giỏ",
+    "buyNow": "Mua ngay",
+    "price": "Giá",
+    "reviews": "Đánh giá"
+  }
+}
