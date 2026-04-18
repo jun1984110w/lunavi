@@ -16,6 +16,10 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Lunavi",
   description: "Lunavi",
+  // app/favicon.ico 대신 public 정적 파일을 쓰면 favicon 전용 서버 라우트가 생기지 않아, 청크 런타임 오류를 줄이기 쉽습니다.
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 /**
