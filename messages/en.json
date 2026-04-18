@@ -18,6 +18,19 @@
     "price": "Price",
     "reviews": "Reviews"
   },
+  "home": {
+    "defaultSiteName": "LUNAVI",
+    "todayPick": "Today's pick",
+    "mainBanner": "Main banner",
+    "bannerPreparing": "Products coming soon",
+    "categorySectionTitle": "Categories",
+    "featuredBrandSectionTitle": "Featured brands",
+    "featuredProductSectionTitle": "Featured products",
+    "newProductSectionTitle": "New arrivals",
+    "bestSellerSectionTitle": "Best sellers",
+    "productsPreparing": "Products coming soon",
+    "imagePreparing": "Image coming soon"
+  },
   "layout": {
     "siteName": "LUNAVI",
     "searchPlaceholder": "Search for products",

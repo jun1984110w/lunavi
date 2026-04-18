@@ -18,6 +18,19 @@
     "price": "Giá",
     "reviews": "Đánh giá"
   },
+  "home": {
+    "defaultSiteName": "LUNAVI",
+    "todayPick": "Gợi ý hôm nay",
+    "mainBanner": "Banner chính",
+    "bannerPreparing": "Sản phẩm đang chuẩn bị",
+    "categorySectionTitle": "Danh mục",
+    "featuredBrandSectionTitle": "Thương hiệu nổi bật",
+    "featuredProductSectionTitle": "Sản phẩm đề xuất",
+    "newProductSectionTitle": "Sản phẩm mới",
+    "bestSellerSectionTitle": "Sản phẩm bán chạy",
+    "productsPreparing": "Sản phẩm đang chuẩn bị",
+    "imagePreparing": "Hình ảnh đang chuẩn bị"
+  },
   "layout": {
     "siteName": "LUNAVI",
     "searchPlaceholder": "Tìm kiếm sản phẩm",

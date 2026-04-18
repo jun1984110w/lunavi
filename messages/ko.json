@@ -18,6 +18,19 @@
     "price": "가격",
     "reviews": "리뷰"
   },
+  "home": {
+    "defaultSiteName": "LUNAVI",
+    "todayPick": "오늘의 추천",
+    "mainBanner": "메인 배너",
+    "bannerPreparing": "상품 준비중",
+    "categorySectionTitle": "카테고리",
+    "featuredBrandSectionTitle": "인기 브랜드",
+    "featuredProductSectionTitle": "추천 상품",
+    "newProductSectionTitle": "신상품",
+    "bestSellerSectionTitle": "인기 상품",
+    "productsPreparing": "상품 준비중",
+    "imagePreparing": "상품 준비중"
+  },
   "layout": {
     "siteName": "LUNAVI",
     "searchPlaceholder": "찾고 싶은 상품을 검색해 보세요",
