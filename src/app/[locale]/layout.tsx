@@ -1,3 +1,6 @@
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -9,27 +12,34 @@ type Props = {
 };
 
 /**
- * `[locale]` 하위의 정적 경로를 빌드 시 생성합니다.
+ * `[locale]` 세그먼트마다 메시지를 주입하고, 잘못된 로케일은 404로 처리합니다.
  */
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-/**
- * 로케일별 레이아웃: 유효하지 않은 `locale`은 404, 메시지를 클라이언트에도 전달합니다.
- */
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = params;
 
-  if (!(routing.locales as readonly string[]).includes(locale)) {
+  if (
+    !routing.locales.includes(locale as (typeof routing.locales)[number])
+  ) {
     notFound();
   }
 
+  // 정적 렌더링 시 로케일을 명시해 headers() 없이도 next-intl API가 동작하도록 합니다.
   setRequestLocale(locale);
 
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+    <div lang={locale} className="flex min-h-screen flex-col bg-surface text-ink">
+      <NextIntlClientProvider messages={messages}>
+        <Header />
+        <main className="flex-1 pb-20 md:pb-0">{children}</main>
+        <Footer />
+        <MobileBottomNav />
+      </NextIntlClientProvider>
+    </div>
   );
 }

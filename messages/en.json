@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "category": "Categories",
+    "category": "Category",
     "search": "Search",
     "cart": "Cart",
     "mypage": "My page"
@@ -17,5 +17,71 @@
     "buyNow": "Buy now",
     "price": "Price",
     "reviews": "Reviews"
+  },
+  "layout": {
+    "siteName": "LUNAVI",
+    "searchPlaceholder": "Search for products",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "categoryNavAria": "Category navigation",
+    "mobileNavAria": "Primary bottom navigation",
+    "localeVi": "VI",
+    "localeKo": "KO",
+    "localeEn": "EN",
+    "footer": {
+      "companyInfo": "Company",
+      "customerCenter": "Customer center",
+      "sns": "Social",
+      "businessNo": "Business registration 123-45-67890",
+      "ceo": "CEO Hong Gildong",
+      "address": "00 Teheran-ro, Gangnam-gu, Seoul",
+      "csHours": "Customer support 09:00 - 18:00 (closed weekends & holidays)",
+      "csPhone": "1588-0000",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube",
+      "copyright": "© LUNAVI Co., Ltd. All rights reserved."
+    },
+    "cat": {
+      "digital": {
+        "title": "Electronics",
+        "computer": {
+          "title": "Computers",
+          "laptop": "Laptops",
+          "monitor": "Monitors"
+        },
+        "mobile": {
+          "title": "Mobile",
+          "phone": "Smartphones",
+          "wearable": "Wearables"
+        }
+      },
+      "fashion": {
+        "title": "Fashion & beauty",
+        "men": {
+          "title": "Men",
+          "top": "Tops",
+          "bottom": "Bottoms"
+        },
+        "women": {
+          "title": "Women",
+          "top": "Tops",
+          "dress": "Dresses"
+        }
+      },
+      "living": {
+        "title": "Living & furniture",
+        "furniture": {
+          "title": "Furniture",
+          "sofa": "Sofas",
+          "bed": "Beds"
+        },
+        "kitchen": {
+          "title": "Kitchen",
+          "tool": "Cookware",
+          "storage": "Storage"
+        }
+      }
+    }
   }
 }

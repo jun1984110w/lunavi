@@ -17,5 +17,71 @@
     "buyNow": "바로 구매",
     "price": "가격",
     "reviews": "리뷰"
+  },
+  "layout": {
+    "siteName": "LUNAVI",
+    "searchPlaceholder": "찾고 싶은 상품을 검색해 보세요",
+    "openMenu": "전체 메뉴 열기",
+    "closeMenu": "메뉴 닫기",
+    "categoryNavAria": "카테고리 내비게이션",
+    "mobileNavAria": "하단 주요 메뉴",
+    "localeVi": "VI",
+    "localeKo": "KO",
+    "localeEn": "EN",
+    "footer": {
+      "companyInfo": "회사정보",
+      "customerCenter": "고객센터",
+      "sns": "SNS",
+      "businessNo": "사업자등록번호 123-45-67890",
+      "ceo": "대표 홍길동",
+      "address": "서울특별시 강남구 테헤란로 00",
+      "csHours": "고객센터 운영 09:00 - 18:00 (주말·공휴일 휴무)",
+      "csPhone": "1588-0000",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube",
+      "copyright": "© LUNAVI Co., Ltd. All rights reserved."
+    },
+    "cat": {
+      "digital": {
+        "title": "가전/디지털",
+        "computer": {
+          "title": "컴퓨터",
+          "laptop": "노트북",
+          "monitor": "모니터"
+        },
+        "mobile": {
+          "title": "모바일",
+          "phone": "스마트폰",
+          "wearable": "웨어러블"
+        }
+      },
+      "fashion": {
+        "title": "패션·뷰티",
+        "men": {
+          "title": "남성의류",
+          "top": "상의",
+          "bottom": "하의"
+        },
+        "women": {
+          "title": "여성의류",
+          "top": "상의",
+          "dress": "원피스"
+        }
+      },
+      "living": {
+        "title": "생활·가구",
+        "furniture": {
+          "title": "가구",
+          "sofa": "소파",
+          "bed": "침대"
+        },
+        "kitchen": {
+          "title": "주방",
+          "tool": "조리도구",
+          "storage": "수납용품"
+        }
+      }
+    }
   }
 }

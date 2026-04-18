@@ -17,5 +17,71 @@
     "buyNow": "Mua ngay",
     "price": "Giá",
     "reviews": "Đánh giá"
+  },
+  "layout": {
+    "siteName": "LUNAVI",
+    "searchPlaceholder": "Tìm kiếm sản phẩm",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu",
+    "categoryNavAria": "Điều hướng danh mục",
+    "mobileNavAria": "Menu điều hướng dưới",
+    "localeVi": "VI",
+    "localeKo": "KO",
+    "localeEn": "EN",
+    "footer": {
+      "companyInfo": "Thông tin công ty",
+      "customerCenter": "Trung tâm khách hàng",
+      "sns": "Mạng xã hội",
+      "businessNo": "Mã số doanh nghiệp 123-45-67890",
+      "ceo": "CEO Hong Gildong",
+      "address": "00 Teheran-ro, Gangnam-gu, Seoul",
+      "csHours": "Hỗ trợ 09:00 - 18:00 (nghỉ cuối tuần & ngày lễ)",
+      "csPhone": "1588-0000",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube",
+      "copyright": "© LUNAVI Co., Ltd. All rights reserved."
+    },
+    "cat": {
+      "digital": {
+        "title": "Điện tử",
+        "computer": {
+          "title": "Máy tính",
+          "laptop": "Laptop",
+          "monitor": "Màn hình"
+        },
+        "mobile": {
+          "title": "Di động",
+          "phone": "Điện thoại",
+          "wearable": "Thiết bị đeo"
+        }
+      },
+      "fashion": {
+        "title": "Thời trang & làm đẹp",
+        "men": {
+          "title": "Nam",
+          "top": "Áo",
+          "bottom": "Quần"
+        },
+        "women": {
+          "title": "Nữ",
+          "top": "Áo",
+          "dress": "Đầm"
+        }
+      },
+      "living": {
+        "title": "Đời sống & nội thất",
+        "furniture": {
+          "title": "Nội thất",
+          "sofa": "Sofa",
+          "bed": "Giường"
+        },
+        "kitchen": {
+          "title": "Nhà bếp",
+          "tool": "Dụng cụ nấu",
+          "storage": "Đồ đựng"
+        }
+      }
+    }
   }
 }

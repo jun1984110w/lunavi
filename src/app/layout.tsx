@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { headers } from "next/headers";
-import { routing } from "@/i18n/routing";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -17,23 +15,20 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Lunavi",
-  description: "Lunavi app",
+  description: "Lunavi",
 };
 
 /**
- * 루트 레이아웃: `<html>` / `<body>`는 반드시 여기에 두어야 합니다.
- * `lang`은 미들웨어가 설정하는 `X-NEXT-INTL-LOCALE`를 우선 사용합니다.
+ * App Router 루트 레이아웃입니다. 실제 페이지는 `[locale]` 아래에 둡니다.
+ * `<html>`의 `lang`은 로케일별 레이아웃에서 콘텐츠 래퍼로 보완합니다.
  */
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale =
-    headers().get("X-NEXT-INTL-LOCALE") ?? routing.defaultLocale;
-
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
