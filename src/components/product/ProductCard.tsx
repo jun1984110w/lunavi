@@ -34,7 +34,7 @@ export async function ProductCard({ item }: Props) {
 
   return (
     <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-      <Link href={`/products/${item.slug}`} className="block">
+      <Link href={`/product/${item.slug}`} className="block">
         <div className="aspect-square bg-neutral-100">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
@@ -58,7 +58,7 @@ export async function ProductCard({ item }: Props) {
           <p className="line-clamp-1 text-xs text-neutral-500">{item.brandName}</p>
         )}
 
-        <Link href={`/products/${item.slug}`} className="block">
+        <Link href={`/product/${item.slug}`} className="block">
           <h3 className="line-clamp-2 min-h-10 text-sm font-medium text-ink">{item.name}</h3>
         </Link>
 
