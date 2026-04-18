@@ -111,6 +111,7 @@
     "signupSuccessPending": "가입이 완료되었습니다. 이메일 인증 후 로그인해 주세요.",
     "unknownError": "요청 처리 중 오류가 발생했습니다.",
     "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다.",
+    "emailNotConfirmed": "이메일 인증 후 로그인해주세요",
     "tooManyRequests": "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
     "duplicateEmail": "이미 가입된 이메일입니다",
     "forgotPasswordDescription": "가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내드립니다.",

@@ -36,9 +36,23 @@ export function ForgotPasswordForm({ locale, labels }: Props) {
         : undefined;
 
     // 비밀번호 재설정 메일을 보내고, 링크 클릭 시 재설정 페이지로 이동시킵니다.
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    // 재설정 메일 API 호출에 사용된 파라미터를 함께 기록해 디버깅을 쉽게 합니다.
+    console.info("[Auth][ResetPassword] resetPasswordForEmail request", {
+      email: email.trim(),
+      redirectTo,
+    });
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo,
+    });
 
     if (error) {
+      // 재설정 메일 실패 원인을 빠르게 확인할 수 있도록 Supabase 에러 정보를 자세히 기록합니다.
+      const detail = error as { message?: string; status?: number };
+      console.error("[Auth][ResetPassword] resetPasswordForEmail error", {
+        message: detail.message,
+        status: detail.status,
+      });
       setErrorMessage(error.message || labels.unknownError);
       setLoading(false);
       return;

@@ -26,6 +26,7 @@ type AuthLabels = {
   invalidCredentials: string;
   tooManyRequests: string;
   duplicateEmail: string;
+  emailNotConfirmed: string;
 };
 
 type Props = {
@@ -53,6 +54,7 @@ export function AuthForm({ mode, locale, labels }: Props) {
   const normalizeError = (message: string) => {
     const lower = message.toLowerCase();
     if (lower.includes("invalid login credentials")) return labels.invalidCredentials;
+    if (lower.includes("email not confirmed")) return labels.emailNotConfirmed;
     if (lower.includes("email rate limit exceeded")) return labels.tooManyRequests;
     if (lower.includes("user already registered")) return labels.duplicateEmail;
     return message || labels.unknownError;
@@ -88,13 +90,29 @@ export function AuthForm({ mode, locale, labels }: Props) {
     setInfoMessage(null);
 
     if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
+      // 브라우저 콘솔에서 Supabase 로그인 응답 원문(data/error)을 바로 확인할 수 있도록 출력합니다.
+      console.log("로그인 결과:", { data, error });
 
       if (error) {
+        // 로그인 실패 원인을 빠르게 확인할 수 있도록 Supabase 에러 정보를 자세히 기록합니다.
+        const detail = error as { message?: string; status?: number };
+        console.error("[Auth][Login] signInWithPassword error", {
+          message: detail.message,
+          status: detail.status,
+        });
         setErrorMessage(normalizeError(error.message));
+        setLoading(false);
+        return;
+      }
+
+      // 이메일 인증이 완료되지 않은 계정은 로그인 후에도 접근을 제한합니다.
+      if (data.user && !data.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        setErrorMessage(labels.emailNotConfirmed);
         setLoading(false);
         return;
       }
@@ -105,7 +123,7 @@ export function AuthForm({ mode, locale, labels }: Props) {
     }
 
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
         data: {
@@ -116,6 +134,12 @@ export function AuthForm({ mode, locale, labels }: Props) {
     });
 
     if (error) {
+      // 회원가입 실패 원인을 빠르게 확인할 수 있도록 Supabase 에러 정보를 자세히 기록합니다.
+      const detail = error as { message?: string; status?: number };
+      console.error("[Auth][Signup] signUp error", {
+        message: detail.message,
+        status: detail.status,
+      });
       setErrorMessage(normalizeError(error.message));
       setLoading(false);
       return;

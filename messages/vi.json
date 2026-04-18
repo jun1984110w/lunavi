@@ -111,6 +111,7 @@
     "signupSuccessPending": "Đăng ký thành công. Vui lòng xác thực email trước khi đăng nhập.",
     "unknownError": "Đã xảy ra lỗi khi xử lý yêu cầu.",
     "invalidCredentials": "Email hoặc mật khẩu không đúng.",
+    "emailNotConfirmed": "Vui lòng xác thực email trước khi đăng nhập",
     "tooManyRequests": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
     "duplicateEmail": "Email này đã được đăng ký",
     "forgotPasswordDescription": "Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu.",

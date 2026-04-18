@@ -35,6 +35,7 @@ export default async function SignupPage({ params }: Props) {
           invalidCredentials: t("invalidCredentials"),
           tooManyRequests: t("tooManyRequests"),
           duplicateEmail: t("duplicateEmail"),
+          emailNotConfirmed: t("emailNotConfirmed"),
         }}
       />
     </main>

@@ -111,6 +111,7 @@
     "signupSuccessPending": "Signup completed. Please verify your email before logging in.",
     "unknownError": "Something went wrong while processing your request.",
     "invalidCredentials": "Incorrect email or password.",
+    "emailNotConfirmed": "Please verify your email before logging in",
     "tooManyRequests": "Too many requests. Please try again later.",
     "duplicateEmail": "This email is already registered",
     "forgotPasswordDescription": "Enter your email and we will send you a password reset link.",
