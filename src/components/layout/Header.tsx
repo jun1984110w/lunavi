@@ -38,6 +38,13 @@ const CATEGORY_TREE = [
 ];
 
 type MegaId = (typeof CATEGORY_TREE)[number]["megaId"];
+type LocaleCode = "vi" | "ko" | "en";
+
+const LOCALE_OPTIONS: { code: LocaleCode; label: string }[] = [
+  { code: "vi", label: "Tiếng Việt" },
+  { code: "ko", label: "한국어" },
+  { code: "en", label: "English" },
+];
 
 export function Header() {
   const tLayout = useTranslations("layout");
@@ -49,7 +56,9 @@ export function Header() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMega, setOpenMega] = useState<MegaId | null>(null);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const langMenuRef = useRef<HTMLDivElement | null>(null);
 
   const megaIds = useMemo(
     () => CATEGORY_TREE.map((m) => m.megaId),
@@ -58,6 +67,7 @@ export function Header() {
 
   useEffect(() => {
     setMobileOpen(false);
+    setLangMenuOpen(false);
   }, [pathname, locale]);
 
   useEffect(() => {
@@ -65,6 +75,26 @@ export function Header() {
       if (closeTimer.current) clearTimeout(closeTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    // 언어 메뉴 바깥을 클릭하면 드롭다운을 닫습니다.
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        langMenuRef.current &&
+        !langMenuRef.current.contains(event.target as Node)
+      ) {
+        setLangMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currentLocale = LOCALE_OPTIONS.find(
+    (option) => option.code === (locale as LocaleCode),
+  );
+  const currentLocaleCode = currentLocale?.code.toUpperCase() ?? "VI";
 
   const clearCloseTimer = () => {
     if (closeTimer.current) {
@@ -132,25 +162,43 @@ export function Header() {
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-          <div className="hidden items-center gap-1 rounded-md border border-neutral-200 p-0.5 sm:flex">
-            {(["vi", "ko", "en"] as const).map((loc) => (
-              <Link
-                key={loc}
-                href={pathname}
-                locale={loc}
-                className={`rounded px-2 py-1 text-xs font-semibold ${
-                  locale === loc
-                    ? "bg-brand text-white"
-                    : "text-ink hover:bg-neutral-100"
-                }`}
+          <div className="relative" ref={langMenuRef}>
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-200 px-2.5 text-xs font-semibold text-ink hover:bg-neutral-50 sm:h-10 sm:px-3"
+              aria-haspopup="menu"
+              aria-expanded={langMenuOpen}
+              aria-label="언어 선택 메뉴 열기"
+              onClick={() => setLangMenuOpen((prev) => !prev)}
+            >
+              <span aria-hidden>🌐</span>
+              <span>{currentLocaleCode}</span>
+            </button>
+
+            {langMenuOpen && (
+              <div
+                className="absolute right-0 top-full z-50 mt-1 w-36 rounded-md border border-neutral-200 bg-white p-1 shadow-lg"
+                role="menu"
+                aria-label="언어 선택"
               >
-                {loc === "vi"
-                  ? tLayout("localeVi")
-                  : loc === "ko"
-                    ? tLayout("localeKo")
-                    : tLayout("localeEn")}
-              </Link>
-            ))}
+                {LOCALE_OPTIONS.map((option) => (
+                  <Link
+                    key={option.code}
+                    href={pathname}
+                    locale={option.code}
+                    role="menuitem"
+                    className={`block rounded px-2 py-1.5 text-xs ${
+                      locale === option.code
+                        ? "bg-brand font-semibold text-white"
+                        : "text-ink hover:bg-neutral-100"
+                    }`}
+                    onClick={() => setLangMenuOpen(false)}
+                  >
+                    {option.label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           <Link
@@ -195,26 +243,6 @@ export function Header() {
             </button>
           </div>
         </form>
-        <div className="mt-2 flex justify-center gap-1">
-          {(["vi", "ko", "en"] as const).map((loc) => (
-            <Link
-              key={loc}
-              href={pathname}
-              locale={loc}
-              className={`rounded px-2 py-1 text-xs font-semibold ${
-                locale === loc
-                  ? "bg-brand text-white"
-                  : "border border-neutral-200 text-ink"
-              }`}
-            >
-              {loc === "vi"
-                ? tLayout("localeVi")
-                : loc === "ko"
-                  ? tLayout("localeKo")
-                  : tLayout("localeEn")}
-            </Link>
-          ))}
-        </div>
       </div>
 
       {/* 데스크톱: 대분류 + 메가 드롭다운 */}
