@@ -2,14 +2,36 @@
 
 import { useTranslations } from "next-intl";
 import { FaFacebookF, FaInstagram, FaYoutube } from "react-icons/fa";
+import { SiZalo } from "react-icons/si";
+
+type Props = {
+  companyName: string;
+  representative: string;
+  businessNumber: string;
+  address: string;
+  phone: string;
+  email: string;
+  sns: {
+    facebook?: string;
+    instagram?: string;
+    zalo?: string;
+    youtube?: string;
+  };
+};
 
 /**
  * 하단 회사·고객센터·SNS 영역입니다.
  */
 
-// TODO: site_settings 테이블에서 동적으로 가져오기 (사업자정보·주소·SNS URL 등). 현재는 번역 문자열 + 고정 링크 사용.
-
-export function Footer() {
+export function Footer({
+  companyName,
+  representative,
+  businessNumber,
+  address,
+  phone,
+  email,
+  sns,
+}: Props) {
   const t = useTranslations("layout.footer");
 
   return (
@@ -19,16 +41,18 @@ export function Footer() {
           <section>
             <h2 className="mb-3 text-sm font-bold text-brand">{t("companyInfo")}</h2>
             <ul className="space-y-2 text-xs leading-relaxed text-neutral-700 sm:text-sm">
-              <li>{t("businessNo")}</li>
-              <li>{t("ceo")}</li>
-              <li>{t("address")}</li>
+              <li>{companyName || t("companyInfo")}</li>
+              <li>{representative || t("ceo")}</li>
+              <li>{businessNumber || t("businessNo")}</li>
+              <li>{address || t("address")}</li>
             </ul>
           </section>
 
           <section>
             <h2 className="mb-3 text-sm font-bold text-brand">{t("customerCenter")}</h2>
-            <p className="text-sm font-semibold text-ink">{t("csPhone")}</p>
+            <p className="text-sm font-semibold text-ink">{phone || t("csPhone")}</p>
             <p className="mt-2 text-xs text-neutral-600 sm:text-sm">{t("csHours")}</p>
+            <p className="mt-1 text-xs text-neutral-600 sm:text-sm">{email || "-"}</p>
           </section>
 
           <section>
@@ -36,7 +60,7 @@ export function Footer() {
             <ul className="flex flex-wrap gap-3">
               <li>
                 <a
-                  href="https://www.facebook.com/"
+                  href={sns.facebook || "https://www.facebook.com/"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-ink transition hover:border-brand hover:text-brand"
@@ -47,7 +71,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://www.instagram.com/"
+                  href={sns.instagram || "https://www.instagram.com/"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-ink transition hover:border-brand hover:text-brand"
@@ -58,7 +82,18 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://www.youtube.com/"
+                  href={sns.zalo || "https://zalo.me/"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-ink transition hover:border-brand hover:text-brand"
+                  aria-label="Zalo"
+                >
+                  <SiZalo className="h-5 w-5" aria-hidden />
+                </a>
+              </li>
+              <li>
+                <a
+                  href={sns.youtube || "https://www.youtube.com/"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-ink transition hover:border-brand hover:text-brand"

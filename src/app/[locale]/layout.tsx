@@ -1,10 +1,12 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { getSiteSettings } from "@/lib/site-settings";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import type { Metadata } from "next";
 
 type Props = {
   children: React.ReactNode;
@@ -16,6 +18,29 @@ type Props = {
  */
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const siteSettings = await getSiteSettings();
+  const title = siteSettings.seoTitle || siteSettings.siteName;
+
+  return {
+    title,
+    description: siteSettings.seoDescription || undefined,
+    icons: {
+      icon: siteSettings.faviconUrl || "/favicon.ico",
+    },
+    openGraph: {
+      title,
+      description: siteSettings.seoDescription || undefined,
+      images: siteSettings.seoOgImage ? [siteSettings.seoOgImage] : undefined,
+      locale: params.locale,
+    },
+  };
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
@@ -31,13 +56,23 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale);
 
   const messages = await getMessages();
+  // 레이아웃에서 site_settings를 한 번 조회해 헤더/푸터/메타에서 함께 사용합니다.
+  const siteSettings = await getSiteSettings();
 
   return (
     <div lang={locale} className="flex min-h-screen flex-col bg-surface text-ink">
       <NextIntlClientProvider messages={messages}>
-        <Header />
+        <Header siteName={siteSettings.siteName} logoUrl={siteSettings.logoUrl} />
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
-        <Footer />
+        <Footer
+          companyName={siteSettings.companyName}
+          representative={siteSettings.representative}
+          businessNumber={siteSettings.businessNumber}
+          address={siteSettings.address}
+          phone={siteSettings.phone}
+          email={siteSettings.email}
+          sns={siteSettings.footerSns}
+        />
         <MobileBottomNav />
       </NextIntlClientProvider>
     </div>

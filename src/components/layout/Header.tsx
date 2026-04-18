@@ -10,7 +10,10 @@ import { Link, usePathname } from "@/i18n/navigation";
  * 대분류/중분류/소분류 트리는 추후 카테고리 관리 API와 연동합니다.
  */
 
-// TODO: site_settings 테이블에서 동적으로 가져오기 (로고 URL·표시 사이트명). 현재는 layout.siteName 번역 사용.
+type Props = {
+  siteName: string;
+  logoUrl: string | null;
+};
 
 /** 메시지 키 `layout.cat.*`와 동일한 구조 — TODO: 카테고리 관리 API에서 트리로 대체 */
 const CATEGORY_TREE = [
@@ -46,7 +49,7 @@ const LOCALE_OPTIONS: { code: LocaleCode; label: string }[] = [
   { code: "en", label: "English" },
 ];
 
-export function Header() {
+export function Header({ siteName, logoUrl }: Props) {
   const tLayout = useTranslations("layout");
   const tCat = useTranslations("layout.cat");
   const tNav = useTranslations("nav");
@@ -134,7 +137,14 @@ export function Header() {
             href="/"
             className="flex shrink-0 items-center gap-1.5 font-bold tracking-tight text-brand"
           >
-            <span className="text-lg sm:text-xl">{tLayout("siteName")}</span>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={siteName}
+                className="h-7 w-7 rounded object-cover sm:h-8 sm:w-8"
+              />
+            ) : null}
+            <span className="text-lg sm:text-xl">{siteName || tLayout("siteName")}</span>
           </Link>
         </div>
 
@@ -323,7 +333,7 @@ export function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b px-3 py-2">
-              <span className="font-semibold text-brand">{tLayout("siteName")}</span>
+              <span className="font-semibold text-brand">{siteName || tLayout("siteName")}</span>
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-md"

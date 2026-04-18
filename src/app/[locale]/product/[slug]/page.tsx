@@ -21,7 +21,9 @@ type ProductRow = {
   description_ko: string;
   description_en: string;
   price_retail: number;
+  price_member: number | null;
   price_wholesale: number | null;
+  min_wholesale_qty: number | null;
   original_price: number | null;
   rating_avg: number | null;
   review_count: number | null;
@@ -117,7 +119,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const { data: productRaw } = await supabase
     .from("products")
     .select(
-      "id, slug, category_id, brand_id, name_vi, name_ko, name_en, description_vi, description_ko, description_en, price_retail, price_wholesale, original_price, rating_avg, review_count, brands(id, slug, name, logo_url), product_images(id, image_url, is_main, sort_order), product_options(id, option_name, option_value, price_adjustment, stock_quantity, sort_order)",
+      "id, slug, category_id, brand_id, name_vi, name_ko, name_en, description_vi, description_ko, description_en, price_retail, price_member, price_wholesale, min_wholesale_qty, original_price, rating_avg, review_count, brands(id, slug, name, logo_url), product_images(id, image_url, is_main, sort_order), product_options(id, option_name, option_value, price_adjustment, stock_quantity, sort_order)",
     )
     .eq("slug", slug)
     .eq("status", "active")
@@ -134,16 +136,16 @@ export default async function ProductDetailPage({ params }: Props) {
   }
 
   const { data: authData } = await supabase.auth.getUser();
-  let role = "customer";
+  let role: "guest" | "customer" | "wholesale" = "guest";
   if (authData.user?.id) {
     const { data: profileRaw } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", authData.user.id)
       .maybeSingle();
-    role = ((profileRaw as ProfileRow | null)?.role ?? "customer").toLowerCase();
+    const dbRole = ((profileRaw as ProfileRow | null)?.role ?? "customer").toLowerCase();
+    role = dbRole === "wholesale" ? "wholesale" : "customer";
   }
-  const isWholesaleViewer = role === "wholesale";
 
   const relatedQuery = supabase
     .from("products")
@@ -173,13 +175,15 @@ export default async function ProductDetailPage({ params }: Props) {
           name: getLocalizedName(localeCode, product),
           description: getLocalizedDescription(localeCode, product),
           priceRetail: product.price_retail,
+          priceMember: product.price_member,
           priceWholesale: product.price_wholesale,
+          minWholesaleQty: product.min_wholesale_qty ?? 1,
           originalPrice: product.original_price,
           ratingAvg: product.rating_avg ?? 0,
           reviewCount: product.review_count ?? 0,
           images,
           options,
-          isWholesaleViewer,
+          viewerRole: role,
         }}
         labels={{
           addToCart: t("addToCart"),
@@ -194,7 +198,11 @@ export default async function ProductDetailPage({ params }: Props) {
           actionPreparing: t("actionPreparing"),
           wholesalePrice: t("wholesalePrice"),
           retailPrice: t("retailPrice"),
+          memberPrice: t("memberPrice"),
+          memberSpecialPrice: t("memberSpecialPrice"),
           imagePreparing: t("imagePreparing"),
+          minWholesaleNotice: t("minWholesaleNotice"),
+          minQtyWarning: t("minQtyWarning"),
         }}
       />
 

@@ -121,6 +121,13 @@ export function AuthForm({ mode, locale, labels }: Props) {
       return;
     }
 
+    // Supabase 설정에 따라 중복 이메일도 에러 없이 반환될 수 있어 identities 길이로 중복을 판별합니다.
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      setErrorMessage(labels.duplicateEmail);
+      setLoading(false);
+      return;
+    }
+
     if (data.session) {
       router.push("/");
       router.refresh();

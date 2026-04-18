@@ -29,13 +29,15 @@ type ProductDetailData = {
   name: string;
   description: string;
   priceRetail: number;
+  priceMember: number | null;
   priceWholesale: number | null;
+  minWholesaleQty: number;
   originalPrice: number | null;
   ratingAvg: number;
   reviewCount: number;
   images: ProductImage[];
   options: ProductOption[];
-  isWholesaleViewer: boolean;
+  viewerRole: "guest" | "customer" | "wholesale";
 };
 
 type Labels = {
@@ -51,7 +53,11 @@ type Labels = {
   actionPreparing: string;
   wholesalePrice: string;
   retailPrice: string;
+  memberPrice: string;
+  memberSpecialPrice: string;
   imagePreparing: string;
+  minWholesaleNotice: string;
+  minQtyWarning: string;
 };
 
 type Props = {
@@ -66,14 +72,23 @@ const formatPrice = (value: number) =>
 
 export function ProductDetailClient({ product, labels }: Props) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+  const minQuantity = product.viewerRole === "wholesale" ? Math.max(1, product.minWholesaleQty) : 1;
+  const [quantity, setQuantity] = useState(minQuantity);
   const [activeTab, setActiveTab] = useState<"detail" | "review" | "inquiry">("detail");
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
-  const basePrice = product.priceRetail;
-  const discountBase = product.originalPrice ?? basePrice;
+  const visiblePrice =
+    product.viewerRole === "wholesale"
+      ? product.priceWholesale ?? product.priceRetail
+      : product.viewerRole === "customer"
+        ? product.priceMember ?? product.priceRetail
+        : product.priceRetail;
+  const discountBase = product.originalPrice ?? visiblePrice;
   const discountRate =
-    discountBase > basePrice ? Math.round(((discountBase - basePrice) / discountBase) * 100) : 0;
+    discountBase > visiblePrice
+      ? Math.round(((discountBase - visiblePrice) / discountBase) * 100)
+      : 0;
+  const wholesaleQtyInvalid = product.viewerRole === "wholesale" && quantity < minQuantity;
 
   const groupedOptions = useMemo(() => {
     const groups = new Map<string, ProductOption[]>();
@@ -158,17 +173,28 @@ export function ProductDetailClient({ product, labels }: Props) {
                   {discountRate}%
                 </span>
               ) : null}
-              <span className="text-2xl font-bold text-red-500">{formatPrice(basePrice)} VND</span>
+              <span className="text-2xl font-bold text-red-500">{formatPrice(visiblePrice)} VND</span>
             </div>
-            {discountBase > basePrice ? (
+            {discountBase > visiblePrice ? (
               <p className="text-sm text-neutral-400 line-through">{formatPrice(discountBase)} VND</p>
             ) : null}
-            <p className="text-xs text-neutral-500">
-              {labels.retailPrice}: {formatPrice(product.priceRetail)} VND
-            </p>
-            {product.isWholesaleViewer && product.priceWholesale ? (
+            {product.viewerRole === "customer" ? (
+              <p className="text-xs font-semibold text-brand">{labels.memberSpecialPrice}</p>
+            ) : null}
+            {product.viewerRole !== "wholesale" ? (
+              <p className="text-xs text-neutral-500">
+                {product.viewerRole === "customer" ? labels.memberPrice : labels.retailPrice}:{" "}
+                {formatPrice(visiblePrice)} VND
+              </p>
+            ) : null}
+            {product.viewerRole === "wholesale" && product.priceWholesale ? (
               <p className="text-xs font-semibold text-brand">
                 {labels.wholesalePrice}: {formatPrice(product.priceWholesale)} VND
+              </p>
+            ) : null}
+            {product.viewerRole === "wholesale" ? (
+              <p className="text-xs text-neutral-600">
+                {labels.minWholesaleNotice.replace("{n}", String(minQuantity))}
               </p>
             ) : null}
           </div>
@@ -217,7 +243,8 @@ export function ProductDetailClient({ product, labels }: Props) {
               <button
                 type="button"
                 className="rounded border border-neutral-300 p-1"
-                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                onClick={() => setQuantity((prev) => Math.max(minQuantity, prev - 1))}
+                disabled={quantity <= minQuantity}
               >
                 <MdRemove />
               </button>
@@ -231,19 +258,34 @@ export function ProductDetailClient({ product, labels }: Props) {
               </button>
             </div>
           </div>
+          {wholesaleQtyInvalid ? (
+            <p className="text-xs text-red-600">
+              {labels.minQtyWarning.replace("{n}", String(minQuantity))}
+            </p>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold"
-              onClick={() => window.alert(labels.actionPreparing)}
+              onClick={() =>
+                wholesaleQtyInvalid
+                  ? window.alert(labels.minQtyWarning.replace("{n}", String(minQuantity)))
+                  : window.alert(labels.actionPreparing)
+              }
+              disabled={wholesaleQtyInvalid}
             >
               {labels.addToCart}
             </button>
             <button
               type="button"
               className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white"
-              onClick={() => window.alert(labels.actionPreparing)}
+              onClick={() =>
+                wholesaleQtyInvalid
+                  ? window.alert(labels.minQtyWarning.replace("{n}", String(minQuantity)))
+                  : window.alert(labels.actionPreparing)
+              }
+              disabled={wholesaleQtyInvalid}
             >
               {labels.buyNow}
             </button>
