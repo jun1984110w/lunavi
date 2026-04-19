@@ -3,7 +3,7 @@
 import type { AdminRole } from "@/lib/auth/checkAdmin";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 type CategoryRow = {
@@ -66,6 +66,54 @@ type Props = {
   hasTranslateApiKey: boolean;
 };
 
+/** 상품 수정 폼에서 조인으로 불러오는 이미지 행 타입입니다. */
+type ProductImageRow = {
+  id: number;
+  image_url: string;
+  sort_order: number;
+  is_main: boolean;
+};
+
+/** 상품 수정 폼에서 조인으로 불러오는 옵션 행 타입입니다. */
+type ProductOptionRow = {
+  id: number;
+  option_name: string;
+  option_value: string;
+  price_adjustment: number | string | null;
+  stock_quantity: number | string | null;
+  sort_order: number;
+};
+
+/** 수정 모드에서 products + 이미지/옵션 조인 select 결과 한 행의 형태입니다. */
+type ProductEditRow = {
+  id: number;
+  category_id: number;
+  brand_id: number | null;
+  name_vi: string;
+  name_ko: string;
+  name_en: string;
+  slug: string;
+  sku: string | null;
+  original_price: number | string | null;
+  price_retail: number | string;
+  price_member: number | string | null;
+  price_wholesale: number | string | null;
+  min_wholesale_qty?: number | string | null;
+  description_vi: string | null;
+  description_ko: string | null;
+  description_en: string | null;
+  stock_quantity: number;
+  allow_preorder: boolean;
+  restock_date: string | null;
+  age_tags: string[] | null;
+  search_tags: string[] | null;
+  is_featured: boolean;
+  is_new: boolean;
+  status: string;
+  product_images?: ProductImageRow[] | null;
+  product_options?: ProductOptionRow[] | null;
+};
+
 const AGE_TAG_OPTIONS = ["0-6개월", "6-12개월", "1-2세", "2-4세", "4세+"];
 
 const DEFAULT_FORM: FormState = {
@@ -126,8 +174,11 @@ export function ProductForm({
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
 
   const canCreate = role !== "brand_admin";
-  const canManageBrand = (brandId: number | null) =>
-    role !== "brand_admin" || (brandId !== null && managedBrandIds.includes(brandId));
+  const canManageBrand = useCallback(
+    (brandId: number | null) =>
+      role !== "brand_admin" || (brandId !== null && managedBrandIds.includes(brandId)),
+    [role, managedBrandIds],
+  );
 
   const level1Options = useMemo(
     () => categories.filter((item) => item.parent_id === null),
@@ -169,7 +220,7 @@ export function ProductForm({
       );
     };
     void loadOptions();
-  }, [role, managedBrandIds]);
+  }, [role, managedBrandIds, supabase]);
 
   useEffect(() => {
     if (mode !== "edit" || !productId) return;
@@ -191,7 +242,7 @@ export function ProductForm({
         return;
       }
 
-      const row = data as any;
+      const row = data as ProductEditRow;
       if (!canManageBrand(row.brand_id)) {
         setErrorMessage(t("noPermission"));
         setLoading(false);
@@ -221,9 +272,9 @@ export function ProductForm({
         price_member: row.price_member === null ? "" : String(row.price_member),
         price_wholesale: row.price_wholesale === null ? "" : String(row.price_wholesale),
         min_wholesale_qty: String(row.min_wholesale_qty ?? 1),
-        description_vi: row.description_vi,
-        description_ko: row.description_ko,
-        description_en: row.description_en,
+        description_vi: row.description_vi ?? "",
+        description_ko: row.description_ko ?? "",
+        description_en: row.description_en ?? "",
         stock_quantity: String(row.stock_quantity),
         allow_preorder: row.allow_preorder,
         restock_date: row.restock_date ?? "",
@@ -231,10 +282,13 @@ export function ProductForm({
         search_tags_text: (row.search_tags ?? []).join(", "),
         is_featured: row.is_featured,
         is_new: row.is_new,
-        status: row.status === "soldout" && row.allow_preorder ? "preorder" : row.status,
+        status:
+          row.status === "soldout" && row.allow_preorder
+            ? "preorder"
+            : (row.status as FormState["status"]),
       });
 
-      const imageRows = (row.product_images ?? []) as any[];
+      const imageRows: ProductImageRow[] = row.product_images ?? [];
       setImages(
         imageRows
           .sort((a, b) => a.sort_order - b.sort_order)
@@ -246,7 +300,7 @@ export function ProductForm({
           })),
       );
 
-      const optionRows = (row.product_options ?? []) as any[];
+      const optionRows: ProductOptionRow[] = row.product_options ?? [];
       setOptions(
         optionRows
           .sort((a, b) => a.sort_order - b.sort_order)
@@ -266,7 +320,7 @@ export function ProductForm({
     if (categories.length > 0) {
       void loadProduct();
     }
-  }, [mode, productId, categories, t]);
+  }, [mode, productId, categories, t, supabase, canManageBrand]);
 
   const uploadProductImages = async (files: FileList | File[]) => {
     const uploaded: ProductImageDraft[] = [];

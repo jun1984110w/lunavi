@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "@/i18n/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 type FooterSns = {
@@ -61,7 +61,7 @@ export function AdminSiteSettingsManager() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const loadSiteSettings = async () => {
+  const loadSiteSettings = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("site_settings")
@@ -100,12 +100,12 @@ export function AdminSiteSettingsManager() {
     }
 
     setLoading(false);
-  };
+  }, [supabase]);
 
   useEffect(() => {
     // 페이지 진입 시 site_settings 단일 행을 로드합니다.
     void loadSiteSettings();
-  }, []);
+  }, [loadSiteSettings]);
 
   const uploadAsset = async (file: File) => {
     const ext = file.name.split(".").pop() ?? "png";

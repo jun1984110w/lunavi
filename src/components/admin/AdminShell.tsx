@@ -12,14 +12,13 @@ type MenuItem = {
 };
 
 type Props = {
-  locale: string;
   userName: string;
   menuItems: MenuItem[];
   logoutLabel: string;
   children: React.ReactNode;
 };
 
-export function AdminShell({ locale, userName, menuItems, logoutLabel, children }: Props) {
+export function AdminShell({ userName, menuItems, logoutLabel, children }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();

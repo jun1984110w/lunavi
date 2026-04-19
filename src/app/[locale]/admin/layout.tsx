@@ -33,12 +33,7 @@ export default async function AdminLayout({ children, params }: Props) {
       : allMenus;
 
   return (
-    <AdminShell
-      locale={locale}
-      userName={session.name}
-      menuItems={menuItems}
-      logoutLabel={t("logout")}
-    >
+    <AdminShell userName={session.name} menuItems={menuItems} logoutLabel={t("logout")}>
       {children}
     </AdminShell>
   );

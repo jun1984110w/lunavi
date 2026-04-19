@@ -30,12 +30,12 @@ export function ForgotPasswordForm({ locale, labels }: Props) {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=/${locale}/reset-password`
-        : undefined;
+    // 클라이언트 전용 컴포넌트의 submit이므로 origin은 항상 현재 사이트입니다.
+    // Supabase 대시보드 Authentication → URL Configuration → Redirect URLs에
+    // 아래 redirectTo와 동일한 전체 URL(쿼리 포함)을 반드시 등록해야 메일 링크가 잘리지 않습니다.
+    const redirectTo = `${window.location.origin}/auth/callback?next=/${locale}/reset-password`;
 
-    // 비밀번호 재설정 메일을 보내고, 링크 클릭 시 재설정 페이지로 이동시킵니다.
+    // 비밀번호 재설정 메일을 보내고, 링크 클릭 시 /auth/callback에서 세션 교환 후 next로 이동시킵니다.
     // 재설정 메일 API 호출에 사용된 파라미터를 함께 기록해 디버깅을 쉽게 합니다.
     console.info("[Auth][ResetPassword] resetPasswordForEmail request", {
       email: email.trim(),
