@@ -1,8 +1,21 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 /**
+ * user_metadata에서 profiles.phone에 넣을 문자열을 고릅니다.
+ * 이메일 가입 시 'phone' 키는 GoTrue OIDC Claims와 충돌해 메타에 저장되지 않을 수 있어 contact_phone 등을 우선합니다.
+ */
+function pickPhoneFromUserMetadata(meta: Record<string, unknown>): string | null {
+  const keys = ["contact_phone", "phone_number", "phone"] as const;
+  for (const key of keys) {
+    const v = meta[key];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return null;
+}
+
+/**
  * 회원가입 폼에서 입력한 이름·전화를 profiles에 반영합니다.
- * auth.users 트리거가 raw_user_meta_data의 phone을 profiles로 옮기지 않는 경우를 대비합니다.
+ * auth 트리거·메타데이터와 별도로 폼 값을 한 번 더 맞춥니다.
  */
 export async function syncProfileAfterSignupFromForm(
   supabase: SupabaseClient,
@@ -20,7 +33,7 @@ export async function syncProfileAfterSignupFromForm(
 }
 
 /**
- * 이메일 인증 링크로 세션이 생긴 직후, user_metadata에 남아 있는 phone·full_name을 profiles에 반영합니다.
+ * 이메일 인증 링크로 세션이 생긴 직후, user_metadata의 full_name·연락처(contact_phone 등)를 profiles에 반영합니다.
  * 가입 직후에는 클라이언트에 세션이 없어 UPDATE가 불가능하므로 콜백에서 보완합니다.
  */
 export async function syncProfileFromUserMetadataAfterCallback(
@@ -36,10 +49,8 @@ export async function syncProfileFromUserMetadataAfterCallback(
     const v = meta.full_name.trim();
     if (v) patch.full_name = v;
   }
-  if (typeof meta.phone === "string") {
-    const v = meta.phone.trim();
-    if (v) patch.phone = v;
-  }
+  const phoneFromMeta = pickPhoneFromUserMetadata(meta);
+  if (phoneFromMeta) patch.phone = phoneFromMeta;
 
   if (Object.keys(patch).length === 0) return;
 

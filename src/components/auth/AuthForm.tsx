@@ -163,15 +163,26 @@ function AuthFormInner({ mode, locale, labels }: Props) {
     const phoneTrim = phone.trim();
     const nameTrim = name.trim();
 
+    // GoTrue는 이메일 가입 시 identity 맵에 OIDC Claims(phone 키 포함)를 먼저 깔고 data를 병합합니다.
+    // 이때 'phone' 키는 이미 비어 있어 덮어쓰이지 않아 raw_user_meta_data에 연락처가 남지 않습니다.
+    // 예약과 겹치지 않는 contact_phone으로 전달합니다.
+    const signUpUserData: Record<string, string> = {
+      full_name: nameTrim,
+      contact_phone: phoneTrim,
+    };
+
+    console.log("[Auth][Signup] signUp 호출 직전", {
+      email: email.trim(),
+      optionsData: signUpUserData,
+      phoneTrimLength: phoneTrim.length,
+    });
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         emailRedirectTo,
-        data: {
-          full_name: nameTrim,
-          phone: phoneTrim,
-        },
+        data: signUpUserData,
       },
     });
 
@@ -193,6 +204,8 @@ function AuthFormInner({ mode, locale, labels }: Props) {
       return;
     }
 
+    console.log("[Auth][Signup] signUp 성공 후 user_metadata", data.user?.user_metadata ?? null);
+
     // 세션이 있으면(즉시 로그인 허용 등) 트리거가 비운 phone 등을 폼 값으로 채웁니다.
     if (data.session && data.user) {
       await syncProfileAfterSignupFromForm(supabase, data.user.id, {
@@ -206,7 +219,7 @@ function AuthFormInner({ mode, locale, labels }: Props) {
     }
 
     // 이메일 확인이 필요한 경우 로그인 페이지로 보내 인증 안내를 한곳에서 보이게 합니다.
-    // phone은 user_metadata에만 있고, profiles 반영은 /auth/callback 의 exchange 이후에 수행합니다.
+    // 연락처는 contact_phone으로 user_metadata에 남고, profiles 반영은 트리거 및 /auth/callback 에서 수행합니다.
     router.replace("/login?hint=signup-pending");
     router.refresh();
     setLoading(false);
