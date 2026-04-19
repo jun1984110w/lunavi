@@ -168,6 +168,7 @@ export default async function ProductDetailPage({ params }: Props) {
     <main className="mx-auto w-full max-w-7xl space-y-6 px-3 py-4 sm:px-4 lg:px-6">
       <ProductDetailClient
         product={{
+          id: product.id,
           slug: product.slug,
           brandSlug: brand?.slug ?? null,
           brandName: brand?.name ?? "",
@@ -203,6 +204,8 @@ export default async function ProductDetailPage({ params }: Props) {
           imagePreparing: t("imagePreparing"),
           minWholesaleNotice: t("minWholesaleNotice"),
           minQtyWarning: t("minQtyWarning"),
+          addedToCart: t("addedToCart"),
+          selectOptionsRequired: t("selectOptionsRequired"),
         }}
       />
 

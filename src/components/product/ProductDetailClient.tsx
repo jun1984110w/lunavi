@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { useCartStore } from "@/stores/cartStore";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useRouter } from "@/i18n/navigation";
 import { MdAdd, MdRemove, MdStar } from "react-icons/md";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -22,6 +23,7 @@ type ProductOption = {
 };
 
 type ProductDetailData = {
+  id: number;
   slug: string;
   brandSlug: string | null;
   brandName: string;
@@ -58,6 +60,8 @@ type Labels = {
   imagePreparing: string;
   minWholesaleNotice: string;
   minQtyWarning: string;
+  addedToCart: string;
+  selectOptionsRequired: string;
 };
 
 type Props = {
@@ -71,11 +75,20 @@ const formatPrice = (value: number) =>
   }).format(value);
 
 export function ProductDetailClient({ product, labels }: Props) {
+  const router = useRouter();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const minQuantity = product.viewerRole === "wholesale" ? Math.max(1, product.minWholesaleQty) : 1;
   const [quantity, setQuantity] = useState(minQuantity);
   const [activeTab, setActiveTab] = useState<"detail" | "review" | "inquiry">("detail");
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // 토스트 문구는 잠시 보였다가 자동으로 사라집니다.
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = window.setTimeout(() => setToastMessage(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   const visiblePrice =
     product.viewerRole === "wholesale"
@@ -102,6 +115,81 @@ export function ProductDetailClient({ product, labels }: Props) {
   }, [product.options]);
 
   const visibleImages = product.images.length > 0 ? product.images : [];
+  const mainImageUrl = visibleImages[activeImageIndex]?.image_url ?? visibleImages[0]?.image_url ?? null;
+
+  /** 선택된 옵션을 장바구니 줄 단위로 해석합니다. 미선택이면 null입니다. */
+  const resolveCartSelection = (): {
+    optionId: number | null;
+    optionLabel: string;
+    unitExtra: number;
+  } | null => {
+    if (groupedOptions.length === 0) {
+      return { optionId: null, optionLabel: "", unitExtra: 0 };
+    }
+    const labelParts: string[] = [];
+    let unitExtra = 0;
+    let firstId: number | null = null;
+    for (const [groupName, opts] of groupedOptions) {
+      const val = selectedOptions[groupName];
+      if (!val) return null;
+      const row = opts.find((o) => o.option_value === val);
+      if (!row) return null;
+      labelParts.push(`${groupName}: ${val}`);
+      unitExtra += Number(row.price_adjustment) || 0;
+      if (firstId === null) firstId = row.id;
+    }
+    return { optionId: firstId, optionLabel: labelParts.join(" · "), unitExtra };
+  };
+
+  /** 장바구니 스토어에 담고 토스트를 띄웁니다. */
+  const handleAddToCart = () => {
+    if (wholesaleQtyInvalid) {
+      window.alert(labels.minQtyWarning.replace("{n}", String(minQuantity)));
+      return;
+    }
+    const pick = resolveCartSelection();
+    if (pick === null) {
+      window.alert(labels.selectOptionsRequired);
+      return;
+    }
+    const unitPrice = Math.max(0, visiblePrice + pick.unitExtra);
+    useCartStore.getState().addLine({
+      productId: product.id,
+      productSlug: product.slug,
+      name: product.name,
+      imageUrl: mainImageUrl,
+      optionId: pick.optionId,
+      optionLabel: pick.optionLabel,
+      unitPrice,
+      quantity,
+    });
+    setToastMessage(labels.addedToCart);
+  };
+
+  /** 담은 뒤 곧바로 결제 단계로 이동합니다. */
+  const handleBuyNow = () => {
+    if (wholesaleQtyInvalid) {
+      window.alert(labels.minQtyWarning.replace("{n}", String(minQuantity)));
+      return;
+    }
+    const pick = resolveCartSelection();
+    if (pick === null) {
+      window.alert(labels.selectOptionsRequired);
+      return;
+    }
+    const unitPrice = Math.max(0, visiblePrice + pick.unitExtra);
+    useCartStore.getState().addLine({
+      productId: product.id,
+      productSlug: product.slug,
+      name: product.name,
+      imageUrl: mainImageUrl,
+      optionId: pick.optionId,
+      optionLabel: pick.optionLabel,
+      unitPrice,
+      quantity,
+    });
+    router.push("/checkout");
+  };
 
   return (
     <div className="space-y-6">
@@ -268,11 +356,7 @@ export function ProductDetailClient({ product, labels }: Props) {
             <button
               type="button"
               className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold"
-              onClick={() =>
-                wholesaleQtyInvalid
-                  ? window.alert(labels.minQtyWarning.replace("{n}", String(minQuantity)))
-                  : window.alert(labels.actionPreparing)
-              }
+              onClick={handleAddToCart}
               disabled={wholesaleQtyInvalid}
             >
               {labels.addToCart}
@@ -280,11 +364,7 @@ export function ProductDetailClient({ product, labels }: Props) {
             <button
               type="button"
               className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white"
-              onClick={() =>
-                wholesaleQtyInvalid
-                  ? window.alert(labels.minQtyWarning.replace("{n}", String(minQuantity)))
-                  : window.alert(labels.actionPreparing)
-              }
+              onClick={handleBuyNow}
               disabled={wholesaleQtyInvalid}
             >
               {labels.buyNow}
@@ -327,6 +407,15 @@ export function ProductDetailClient({ product, labels }: Props) {
           )}
         </div>
       </section>
+
+      {toastMessage ? (
+        <div
+          className="fixed bottom-20 left-1/2 z-50 max-w-sm -translate-x-1/2 rounded-lg bg-ink px-4 py-2 text-center text-sm text-white shadow-lg md:bottom-8"
+          role="status"
+        >
+          {toastMessage}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { MdClose, MdMenu, MdShoppingCart } from "react-icons/md";
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
+import { useCartStore } from "@/stores/cartStore";
+import { HeaderSearch } from "@/components/layout/HeaderSearch";
 import { Link, usePathname } from "@/i18n/navigation";
 
 /**
@@ -54,9 +56,12 @@ export function Header({ siteName, logoUrl }: Props) {
   const tLayout = useTranslations("layout");
   const tCat = useTranslations("layout.cat");
   const tNav = useTranslations("nav");
-  const tCommon = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
+  /** 헤더 장바구니 아이콘에 표시할 총 수량(모든 줄의 quantity 합) */
+  const cartItemCount = useCartStore((s) =>
+    s.items.reduce((acc, line) => acc + line.quantity, 0),
+  );
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMega, setOpenMega] = useState<MegaId | null>(null);
@@ -149,28 +154,13 @@ export function Header({ siteName, logoUrl }: Props) {
           </Link>
         </div>
 
-        <form
-          action={`/${locale}/search`}
-          method="get"
-          className="mx-auto hidden min-w-0 max-w-xl flex-1 sm:flex"
-          role="search"
+        <Suspense
+          fallback={
+            <div className="mx-auto hidden min-h-[42px] min-w-0 max-w-xl flex-1 animate-pulse rounded-md bg-neutral-100 sm:block" />
+          }
         >
-          <div className="flex w-full overflow-hidden rounded-md border-2 border-brand shadow-sm">
-            <input
-              type="search"
-              name="q"
-              placeholder={tLayout("searchPlaceholder")}
-              className="min-w-0 flex-1 border-0 px-3 py-2 text-sm text-ink outline-none placeholder:text-neutral-400"
-              aria-label={tCommon("search")}
-            />
-            <button
-              type="submit"
-              className="bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand/90"
-            >
-              {tCommon("search")}
-            </button>
-          </div>
-        </form>
+          <HeaderSearch className="mx-auto hidden min-w-0 max-w-xl flex-1 sm:block" />
+        </Suspense>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <div className="relative" ref={langMenuRef}>
@@ -220,29 +210,22 @@ export function Header({ siteName, logoUrl }: Props) {
             aria-label={tNav("cart")}
           >
             <MdShoppingCart className="h-6 w-6 text-brand" aria-hidden />
+            {cartItemCount > 0 ? (
+              <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-0.5 text-[10px] font-bold leading-none text-white">
+                {cartItemCount > 99 ? "99+" : cartItemCount}
+              </span>
+            ) : null}
           </Link>
         </div>
       </div>
 
       {/* 모바일 검색바 */}
       <div className="border-t border-neutral-100 px-3 pb-2 sm:hidden">
-        <form action={`/${locale}/search`} method="get" role="search">
-          <div className="flex overflow-hidden rounded-md border border-neutral-300">
-            <input
-              type="search"
-              name="q"
-              placeholder={tLayout("searchPlaceholder")}
-              className="min-w-0 flex-1 border-0 px-3 py-2 text-sm outline-none placeholder:text-neutral-400"
-              aria-label={tCommon("search")}
-            />
-            <button
-              type="submit"
-              className="bg-brand px-3 py-2 text-sm font-semibold text-white"
-            >
-              {tCommon("search")}
-            </button>
-          </div>
-        </form>
+        <Suspense
+          fallback={<div className="min-h-[42px] w-full animate-pulse rounded-md bg-neutral-100" />}
+        >
+          <HeaderSearch />
+        </Suspense>
       </div>
 
       {/* 데스크톱: 대분류 + 메가 드롭다운 */}

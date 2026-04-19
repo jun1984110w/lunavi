@@ -23,6 +23,8 @@ type Props = {
   selectedAgeTags: string[];
   minPrice: number;
   maxPrice: number;
+  /** 검색 등 추가 쿼리 파라미터를 유지할 때 사용합니다. */
+  extraHidden?: { name: string; value: string }[];
 };
 
 export function CategoryFilterSheet({
@@ -41,6 +43,7 @@ export function CategoryFilterSheet({
   selectedAgeTags,
   minPrice,
   maxPrice,
+  extraHidden = [],
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -81,6 +84,9 @@ export function CategoryFilterSheet({
             <form method="get" className="space-y-4">
               {/* 필터 적용 시 1페이지부터 다시 조회합니다. */}
               <input type="hidden" name="page" value="1" />
+              {extraHidden.map((h) => (
+                <input key={h.name} type="hidden" name={h.name} value={h.value} />
+              ))}
 
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">{priceLabel}</h3>

@@ -1,3 +1,4 @@
+import { CartAuthSync } from "@/components/cart/CartAuthSync";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
@@ -62,6 +63,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <div lang={locale} className="flex min-h-screen flex-col bg-surface text-ink">
       <NextIntlClientProvider messages={messages}>
+        {/* 로그인 시 로컬 장바구니와 Supabase carts를 동기화합니다. */}
+        <CartAuthSync locale={locale} />
         <Header siteName={siteSettings.siteName} logoUrl={siteSettings.logoUrl} />
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
         <Footer

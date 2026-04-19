@@ -1,5 +1,6 @@
 "use client";
 
+import { syncProfileAfterSignupFromForm } from "@/lib/auth/profileSignupSync";
 import { sanitizeAuthRedirectPath, stripLeadingLocaleFromPath } from "@/lib/auth/safeRedirect";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -159,6 +160,8 @@ function AuthFormInner({ mode, locale, labels }: Props) {
 
     // 이메일 인증 링크가 우리 도메인으로 돌아오도록 콜백 URL을 지정합니다(profiles는 DB 트리거로 생성).
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=/${locale}`;
+    const phoneTrim = phone.trim();
+    const nameTrim = name.trim();
 
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
@@ -166,8 +169,8 @@ function AuthFormInner({ mode, locale, labels }: Props) {
       options: {
         emailRedirectTo,
         data: {
-          full_name: name,
-          phone,
+          full_name: nameTrim,
+          phone: phoneTrim,
         },
       },
     });
@@ -190,13 +193,20 @@ function AuthFormInner({ mode, locale, labels }: Props) {
       return;
     }
 
-    if (data.session) {
+    // 세션이 있으면(즉시 로그인 허용 등) 트리거가 비운 phone 등을 폼 값으로 채웁니다.
+    if (data.session && data.user) {
+      await syncProfileAfterSignupFromForm(supabase, data.user.id, {
+        fullName: nameTrim,
+        phone: phoneTrim,
+      });
       router.push("/");
       router.refresh();
+      setLoading(false);
       return;
     }
 
     // 이메일 확인이 필요한 경우 로그인 페이지로 보내 인증 안내를 한곳에서 보이게 합니다.
+    // phone은 user_metadata에만 있고, profiles 반영은 /auth/callback 의 exchange 이후에 수행합니다.
     router.replace("/login?hint=signup-pending");
     router.refresh();
     setLoading(false);

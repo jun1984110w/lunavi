@@ -1,3 +1,4 @@
+import { syncProfileFromUserMetadataAfterCallback } from "@/lib/auth/profileSignupSync";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import { routing } from "@/i18n/routing";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
@@ -93,6 +94,14 @@ export async function GET(request: NextRequest) {
       status: error.status,
     });
     response = NextResponse.redirect(new URL(loginPath(locale), origin));
+  } else if (!isRecovery) {
+    // 비밀번호 재설정(recovery)이 아닐 때만: 가입 시 metadata에만 있던 phone 등을 profiles에 맞춥니다.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      await syncProfileFromUserMetadataAfterCallback(supabase, user);
+    }
   }
 
   response.headers.set("Cache-Control", "no-store, must-revalidate");

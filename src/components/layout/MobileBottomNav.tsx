@@ -8,6 +8,7 @@ import {
   MdSearch,
   MdShoppingCart,
 } from "react-icons/md";
+import { useCartStore } from "@/stores/cartStore";
 import { Link, usePathname } from "@/i18n/navigation";
 
 /**
@@ -23,6 +24,9 @@ export function MobileBottomNav() {
   const t = useTranslations("nav");
   const tLayout = useTranslations("layout");
   const pathname = usePathname();
+  const cartItemCount = useCartStore((s) =>
+    s.items.reduce((acc, line) => acc + line.quantity, 0),
+  );
 
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" || pathname === "" : pathname.startsWith(path);
@@ -60,9 +64,16 @@ export function MobileBottomNav() {
         <li className="flex flex-1">
           <Link
             href="/cart"
-            className={`${tabClass} ${isActive("/cart") ? activeClass : ""}`}
+            className={`${tabClass} relative ${isActive("/cart") ? activeClass : ""}`}
           >
-            <MdShoppingCart className="h-6 w-6" aria-hidden />
+            <span className="relative inline-flex">
+              <MdShoppingCart className="h-6 w-6" aria-hidden />
+              {cartItemCount > 0 ? (
+                <span className="absolute -right-1.5 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand px-0.5 text-[9px] font-bold leading-none text-white">
+                  {cartItemCount > 99 ? "99+" : cartItemCount}
+                </span>
+              ) : null}
+            </span>
             <span>{t("cart")}</span>
           </Link>
         </li>
