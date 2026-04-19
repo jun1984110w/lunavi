@@ -17,6 +17,10 @@ type Props = {
   };
 };
 
+/**
+ * 비밀번호 재설정 메일 발송 폼입니다.
+ * 메일의 링크는 `/auth/callback`에서 code 교환 후 `next` 경로로 이동합니다.
+ */
 export function ForgotPasswordForm({ locale, labels }: Props) {
   const supabase = createClient();
   const [email, setEmail] = useState("");
@@ -30,28 +34,14 @@ export function ForgotPasswordForm({ locale, labels }: Props) {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    // 클라이언트 전용 컴포넌트의 submit이므로 origin은 항상 현재 사이트입니다.
-    // Supabase 대시보드 Authentication → URL Configuration → Redirect URLs에
-    // 아래 redirectTo와 동일한 전체 URL(쿼리 포함)을 반드시 등록해야 메일 링크가 잘리지 않습니다.
-    const redirectTo = `${window.location.origin}/auth/callback?next=/${locale}/reset-password`;
-
-    // 비밀번호 재설정 메일을 보내고, 링크 클릭 시 /auth/callback에서 세션 교환 후 next로 이동시킵니다.
-    // 재설정 메일 API 호출에 사용된 파라미터를 함께 기록해 디버깅을 쉽게 합니다.
-    console.info("[Auth][ResetPassword] resetPasswordForEmail request", {
-      email: email.trim(),
-      redirectTo,
-    });
-
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo,
+      redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/reset-password`,
     });
 
     if (error) {
-      // 재설정 메일 실패 원인을 빠르게 확인할 수 있도록 Supabase 에러 정보를 자세히 기록합니다.
-      const detail = error as { message?: string; status?: number };
-      console.error("[Auth][ResetPassword] resetPasswordForEmail error", {
-        message: detail.message,
-        status: detail.status,
+      console.error("[Auth][ForgotPassword] resetPasswordForEmail", {
+        message: error.message,
+        status: error.status,
       });
       setErrorMessage(error.message || labels.unknownError);
       setLoading(false);

@@ -125,7 +125,10 @@
     "confirmPassword": "Xác nhận mật khẩu",
     "resetPasswordButton": "Đổi mật khẩu",
     "resetPasswordSuccess": "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
-    "passwordMismatch": "Mật khẩu xác nhận không khớp."
+    "passwordMismatch": "Mật khẩu xác nhận không khớp.",
+    "resetPasswordWaitingSession": "Đang xác nhận phiên đặt lại mật khẩu. Vui lòng đợi trong giây lát.",
+    "resetPasswordLinkExpired": "Liên kết đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu gửi lại email đặt lại mật khẩu.",
+    "resetPasswordForgotPasswordAgain": "Quên mật khẩu (gửi lại email)"
   },
   "adminLayout": {
     "menuDashboard": "Bảng điều khiển",

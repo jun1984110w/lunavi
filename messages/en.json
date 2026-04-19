@@ -125,7 +125,10 @@
     "confirmPassword": "Confirm password",
     "resetPasswordButton": "Change password",
     "resetPasswordSuccess": "Password changed successfully. Please log in again.",
-    "passwordMismatch": "Passwords do not match."
+    "passwordMismatch": "Passwords do not match.",
+    "resetPasswordWaitingSession": "Checking your reset session. Please wait a moment.",
+    "resetPasswordLinkExpired": "This link has expired or is invalid. Please request a new password reset.",
+    "resetPasswordForgotPasswordAgain": "Request password reset again"
   },
   "adminLayout": {
     "menuDashboard": "Dashboard",
