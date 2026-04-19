@@ -1,8 +1,10 @@
 "use client";
 
+import { sanitizeAuthRedirectPath, stripLeadingLocaleFromPath } from "@/lib/auth/safeRedirect";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 type Mode = "login" | "signup";
 
@@ -21,12 +23,15 @@ type AuthLabels = {
   goToLogin: string;
   goToSignup: string;
   divider: string;
-  signupSuccessPending: string;
   unknownError: string;
   invalidCredentials: string;
   tooManyRequests: string;
   duplicateEmail: string;
   emailNotConfirmed: string;
+  passwordTooWeak: string;
+  emailInvalid: string;
+  verifyEmailHint: string;
+  passwordResetDoneHint: string;
 };
 
 type Props = {
@@ -35,9 +40,39 @@ type Props = {
   labels: AuthLabels;
 };
 
-export function AuthForm({ mode, locale, labels }: Props) {
+/**
+ * Supabase Auth 에러 문자열·코드를 next-intl 문구로 바꿉니다.
+ * 로그인 실패(이메일 없음/비밀번호 틀림)는 API상 동일 코드이므로 두 문구를 함께 안내합니다.
+ */
+function normalizeAuthError(message: string, labels: AuthLabels): string {
+  const lower = message.toLowerCase();
+
+  if (lower.includes("invalid login credentials")) {
+    return labels.invalidCredentials;
+  }
+  if (lower.includes("email not confirmed")) return labels.emailNotConfirmed;
+  if (lower.includes("email rate limit exceeded")) return labels.tooManyRequests;
+  if (
+    lower.includes("user already registered") ||
+    lower.includes("already been registered") ||
+    lower.includes("already registered")
+  ) {
+    return labels.duplicateEmail;
+  }
+  if (lower.includes("password") && (lower.includes("least") || lower.includes("weak"))) {
+    return labels.passwordTooWeak;
+  }
+  if (lower.includes("invalid email") || lower.includes("unable to validate email")) {
+    return labels.emailInvalid;
+  }
+
+  return message || labels.unknownError;
+}
+
+function AuthFormInner({ mode, locale, labels }: Props) {
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -50,15 +85,16 @@ export function AuthForm({ mode, locale, labels }: Props) {
   const title = mode === "login" ? labels.loginTitle : labels.signupTitle;
   const submitLabel = mode === "login" ? labels.loginButton : labels.signupButton;
 
-  // Supabase 에러를 사용자 친화적인 메시지로 변환합니다.
-  const normalizeError = (message: string) => {
-    const lower = message.toLowerCase();
-    if (lower.includes("invalid login credentials")) return labels.invalidCredentials;
-    if (lower.includes("email not confirmed")) return labels.emailNotConfirmed;
-    if (lower.includes("email rate limit exceeded")) return labels.tooManyRequests;
-    if (lower.includes("user already registered")) return labels.duplicateEmail;
-    return message || labels.unknownError;
-  };
+  // 로그인 페이지에서 회원가입·비밀번호 재설정 직후 안내(hint 쿼리)를 표시합니다.
+  useEffect(() => {
+    if (mode !== "login") return;
+    const hint = searchParams.get("hint");
+    if (hint === "signup-pending") {
+      setInfoMessage(labels.verifyEmailHint);
+    } else if (hint === "password-reset") {
+      setInfoMessage(labels.passwordResetDoneHint);
+    }
+  }, [mode, searchParams, labels.verifyEmailHint, labels.passwordResetDoneHint]);
 
   const callbackUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -78,7 +114,7 @@ export function AuthForm({ mode, locale, labels }: Props) {
     });
 
     if (error) {
-      setErrorMessage(normalizeError(error.message));
+      setErrorMessage(normalizeAuthError(error.message, labels));
       setLoading(false);
     }
   };
@@ -94,17 +130,14 @@ export function AuthForm({ mode, locale, labels }: Props) {
         email: email.trim(),
         password,
       });
-      // 브라우저 콘솔에서 Supabase 로그인 응답 원문(data/error)을 바로 확인할 수 있도록 출력합니다.
-      console.log("로그인 결과:", { data, error });
 
       if (error) {
-        // 로그인 실패 원인을 빠르게 확인할 수 있도록 Supabase 에러 정보를 자세히 기록합니다.
         const detail = error as { message?: string; status?: number };
         console.error("[Auth][Login] signInWithPassword error", {
           message: detail.message,
           status: detail.status,
         });
-        setErrorMessage(normalizeError(error.message));
+        setErrorMessage(normalizeAuthError(error.message, labels));
         setLoading(false);
         return;
       }
@@ -117,15 +150,21 @@ export function AuthForm({ mode, locale, labels }: Props) {
         return;
       }
 
-      router.push("/");
+      const nextAbs = sanitizeAuthRedirectPath(searchParams.get("next"));
+      const path = nextAbs ? stripLeadingLocaleFromPath(nextAbs) : "/";
+      router.push(path);
       router.refresh();
       return;
     }
+
+    // 이메일 인증 링크가 우리 도메인으로 돌아오도록 콜백 URL을 지정합니다(profiles는 DB 트리거로 생성).
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=/${locale}`;
 
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
+        emailRedirectTo,
         data: {
           full_name: name,
           phone,
@@ -134,13 +173,12 @@ export function AuthForm({ mode, locale, labels }: Props) {
     });
 
     if (error) {
-      // 회원가입 실패 원인을 빠르게 확인할 수 있도록 Supabase 에러 정보를 자세히 기록합니다.
       const detail = error as { message?: string; status?: number };
       console.error("[Auth][Signup] signUp error", {
         message: detail.message,
         status: detail.status,
       });
-      setErrorMessage(normalizeError(error.message));
+      setErrorMessage(normalizeAuthError(error.message, labels));
       setLoading(false);
       return;
     }
@@ -158,7 +196,9 @@ export function AuthForm({ mode, locale, labels }: Props) {
       return;
     }
 
-    setInfoMessage(labels.signupSuccessPending);
+    // 이메일 확인이 필요한 경우 로그인 페이지로 보내 인증 안내를 한곳에서 보이게 합니다.
+    router.replace("/login?hint=signup-pending");
+    router.refresh();
     setLoading(false);
   };
 
@@ -273,5 +313,18 @@ export function AuthForm({ mode, locale, labels }: Props) {
         <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{infoMessage}</p>
       ) : null}
     </section>
+  );
+}
+
+/** `useSearchParams` 때문에 Suspense 경계로 감쌉니다. */
+export function AuthForm(props: Props) {
+  return (
+    <Suspense
+      fallback={
+        <section className="mx-auto h-64 w-full max-w-md animate-pulse rounded-xl border border-neutral-200 bg-neutral-50 p-5 sm:p-6" />
+      }
+    >
+      <AuthFormInner {...props} />
+    </Suspense>
   );
 }

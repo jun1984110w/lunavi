@@ -30,12 +30,15 @@ export default async function LoginPage({ params }: Props) {
           goToLogin: t("goToLogin"),
           goToSignup: t("goToSignup"),
           divider: t("divider"),
-          signupSuccessPending: t("signupSuccessPending"),
           unknownError: t("unknownError"),
           invalidCredentials: t("invalidCredentials"),
           tooManyRequests: t("tooManyRequests"),
           duplicateEmail: t("duplicateEmail"),
           emailNotConfirmed: t("emailNotConfirmed"),
+          passwordTooWeak: t("passwordTooWeak"),
+          emailInvalid: t("emailInvalid"),
+          verifyEmailHint: t("verifyEmailHint"),
+          passwordResetDoneHint: t("passwordResetDoneHint"),
         }}
       />
     </main>

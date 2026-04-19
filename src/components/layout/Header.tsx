@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdClose, MdMenu, MdShoppingCart } from "react-icons/md";
+import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 import { Link, usePathname } from "@/i18n/navigation";
 
 /**
@@ -211,18 +212,7 @@ export function Header({ siteName, logoUrl }: Props) {
             )}
           </div>
 
-          <Link
-            href="/login"
-            className="hidden text-sm font-medium text-ink hover:text-brand sm:inline"
-          >
-            {tCommon("login")}
-          </Link>
-          <Link
-            href="/signup"
-            className="hidden rounded-md border border-brand px-3 py-1.5 text-sm font-semibold text-brand hover:bg-brand/5 sm:inline"
-          >
-            {tCommon("signup")}
-          </Link>
+          <AuthHeaderActions />
 
           <Link
             href="/cart"
@@ -377,21 +367,8 @@ export function Header({ siteName, logoUrl }: Props) {
                 </details>
               ))}
             </div>
-            <div className="border-t p-3">
-              <Link
-                href="/login"
-                className="block py-2 text-sm font-medium"
-                onClick={() => setMobileOpen(false)}
-              >
-                {tCommon("login")}
-              </Link>
-              <Link
-                href="/signup"
-                className="block py-2 text-sm font-medium text-brand"
-                onClick={() => setMobileOpen(false)}
-              >
-                {tCommon("signup")}
-              </Link>
+            <div className="border-t p-3" onClick={() => setMobileOpen(false)}>
+              <AuthHeaderActions variant="drawer" />
             </div>
           </div>
         </div>

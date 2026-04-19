@@ -1,7 +1,7 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
 type Props = {
@@ -19,6 +19,7 @@ type Props = {
 
 export function ResetPasswordForm({ labels }: Props) {
   const supabase = createClient();
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,8 +45,12 @@ export function ResetPasswordForm({ labels }: Props) {
       return;
     }
 
+    // recovery 세션은 로그인 세션과 겹칠 수 있어 비우고 로그인 페이지로 보냅니다.
+    await supabase.auth.signOut();
     setSuccessMessage(labels.success);
     setLoading(false);
+    router.push("/login?hint=password-reset");
+    router.refresh();
   };
 
   return (
@@ -87,7 +92,7 @@ export function ResetPasswordForm({ labels }: Props) {
       </form>
 
       <div className="mt-4 text-sm">
-        <Link href="/login" className="text-brand underline">
+        <Link href="/login?hint=password-reset" className="text-brand underline">
           {labels.goToLogin}
         </Link>
       </div>

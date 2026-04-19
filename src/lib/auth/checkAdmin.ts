@@ -23,9 +23,10 @@ export async function checkAdmin(locale: string): Promise<AdminSession> {
   const { data: authData } = await supabase.auth.getUser();
   const user = authData.user;
 
-  // 로그인하지 않은 사용자는 관리자 페이지 접근을 차단합니다.
+  // 로그인하지 않은 사용자는 로그인 페이지로 보내고, 로그인 후 다시 관리자로 올 수 있게 next를 붙입니다.
   if (!user) {
-    redirect(`/${locale}`);
+    const next = encodeURIComponent(`/${locale}/admin`);
+    redirect(`/${locale}/login?next=${next}`);
   }
 
   const { data: profileRaw } = await supabase
