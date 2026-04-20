@@ -1,10 +1,11 @@
 "use client";
 
 import { useCartStore } from "@/stores/cartStore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { MdAdd, MdRemove, MdStar } from "react-icons/md";
 import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper/types";
 import "swiper/css";
 
 type ProductImage = {
@@ -82,6 +83,7 @@ export function ProductDetailClient({ product, labels }: Props) {
   const [activeTab, setActiveTab] = useState<"detail" | "review" | "inquiry">("detail");
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const swiperRef = useRef<SwiperClass | null>(null);
 
   // 토스트 문구는 잠시 보였다가 자동으로 사라집니다.
   useEffect(() => {
@@ -115,6 +117,27 @@ export function ProductDetailClient({ product, labels }: Props) {
   }, [product.options]);
 
   const visibleImages = product.images.length > 0 ? product.images : [];
+
+  // 상품 이미지 배열 길이가 바뀔 때 활성 인덱스를 유효 범위로 보정합니다.
+  useEffect(() => {
+    if (visibleImages.length === 0 && activeImageIndex !== 0) {
+      setActiveImageIndex(0);
+      return;
+    }
+    if (visibleImages.length > 0 && activeImageIndex >= visibleImages.length) {
+      setActiveImageIndex(visibleImages.length - 1);
+    }
+  }, [activeImageIndex, visibleImages.length]);
+
+  // 썸네일 클릭으로 인덱스가 바뀌면 Swiper도 같은 슬라이드로 이동시킵니다.
+  useEffect(() => {
+    const swiper = swiperRef.current;
+    if (!swiper || swiper.destroyed) return;
+    if (swiper.activeIndex !== activeImageIndex) {
+      swiper.slideTo(activeImageIndex);
+    }
+  }, [activeImageIndex]);
+
   const mainImageUrl = visibleImages[activeImageIndex]?.image_url ?? visibleImages[0]?.image_url ?? null;
 
   /** 선택된 옵션을 장바구니 줄 단위로 해석합니다. 미선택이면 null입니다. */
@@ -202,8 +225,10 @@ export function ProductDetailClient({ product, labels }: Props) {
                 <Swiper
                   spaceBetween={8}
                   slidesPerView={1}
+                  onSwiper={(swiper) => {
+                    swiperRef.current = swiper;
+                  }}
                   onSlideChange={(swiper) => setActiveImageIndex(swiper.activeIndex)}
-                  initialSlide={activeImageIndex}
                 >
                   {visibleImages.map((image) => (
                     <SwiperSlide key={image.id}>

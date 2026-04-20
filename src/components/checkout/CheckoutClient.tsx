@@ -10,6 +10,9 @@ export type CheckoutMessages = {
   empty: string;
   backToCart: string;
   sectionShipping: string;
+  savedAddressesSection: string;
+  savedAddressManual: string;
+  savedAddressPhoneMissing: string;
   recipientName: string;
   recipientPhone: string;
   shippingAddress: string;
@@ -32,9 +35,20 @@ export type CheckoutMessages = {
   submit: string;
   submitting: string;
   cardBlocked: string;
+  errorPhoneRequired: string;
   errorGeneric: string;
   errorStock: string;
   errorLogin: string;
+};
+
+/** 결제 화면에 넘기는 저장 배송지 한 건 */
+export type CheckoutSavedAddress = {
+  id: number;
+  label: string | null;
+  recipient_name: string;
+  recipient_phone: string;
+  fullAddress: string;
+  is_default: boolean;
 };
 
 type SiteHints = {
@@ -46,6 +60,8 @@ type SiteHints = {
 type Props = {
   locale: string;
   messages: CheckoutMessages;
+  /** 마이페이지에서 저장한 배송지 목록(없으면 빈 배열) */
+  savedAddresses: CheckoutSavedAddress[];
   siteHints: SiteHints;
   shippingFee: number;
 };
@@ -58,7 +74,7 @@ const QR_API = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=";
 /**
  * 주문/결제 화면: 배송지, 장바구니(선택) 요약, 결제수단, 주문하기.
  */
-export function CheckoutClient({ locale, messages, siteHints, shippingFee }: Props) {
+export function CheckoutClient({ locale, messages, savedAddresses, siteHints, shippingFee }: Props) {
   const router = useRouter();
   const items = useCartStore((s) => s.items);
   const selectedLineIds = useCartStore((s) => s.selectedLineIds);
@@ -86,6 +102,8 @@ export function CheckoutClient({ locale, messages, siteHints, shippingFee }: Pro
   const [payment, setPayment] = useState<"card" | "bank_transfer" | "qr_transfer" | "cod">("cod");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  /** 저장된 배송지 선택 시 선택된 id(빈 문자열이면 직접 입력 모드) */
+  const [selectedSavedId, setSelectedSavedId] = useState("");
 
   const bankBody = useMemo(() => {
     const parts = [
@@ -99,6 +117,26 @@ export function CheckoutClient({ locale, messages, siteHints, shippingFee }: Pro
 
   const qrData = useMemo(() => encodeURIComponent(bankBody), [bankBody]);
 
+  /**
+   * 저장된 배송지를 고르면 받는 분·연락처·주소를 채웁니다.
+   * 연락처가 비어 있으면 주문 전에 입력하도록 안내 메시지를 띄웁니다.
+   */
+  const applySavedAddress = (row: CheckoutSavedAddress) => {
+    setName(row.recipient_name);
+    setPhone(row.recipient_phone.trim());
+    setAddress(row.fullAddress);
+    const phoneOk = Boolean(row.recipient_phone.trim());
+    setFormError(phoneOk ? null : messages.savedAddressPhoneMissing);
+  };
+
+  const handleSavedSelectChange = (idStr: string) => {
+    setSelectedSavedId(idStr);
+    setFormError(null);
+    if (!idStr) return;
+    const row = savedAddresses.find((a) => String(a.id) === idStr);
+    if (row) applySavedAddress(row);
+  };
+
   const handleSubmit = async () => {
     setFormError(null);
     if (lines.length === 0) {
@@ -109,7 +147,11 @@ export function CheckoutClient({ locale, messages, siteHints, shippingFee }: Pro
       setFormError(messages.cardBlocked);
       return;
     }
-    if (!name.trim() || !phone.trim() || !address.trim()) {
+    if (!phone.trim()) {
+      setFormError(messages.errorPhoneRequired);
+      return;
+    }
+    if (!name.trim() || !address.trim()) {
       setFormError(messages.errorGeneric);
       return;
     }
@@ -170,6 +212,24 @@ export function CheckoutClient({ locale, messages, siteHints, shippingFee }: Pro
         <section className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
           <h2 className="mb-4 text-base font-bold">{messages.sectionShipping}</h2>
           <div className="space-y-3">
+            {savedAddresses.length > 0 ? (
+              <label className="block text-sm">
+                <span className="mb-1 block text-neutral-600">{messages.savedAddressesSection}</span>
+                <select
+                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+                  value={selectedSavedId}
+                  onChange={(e) => handleSavedSelectChange(e.target.value)}
+                >
+                  <option value="">{messages.savedAddressManual}</option>
+                  {savedAddresses.map((row) => (
+                    <option key={row.id} value={String(row.id)}>
+                      {(row.is_default ? "★ " : "") +
+                        (row.label?.trim() || row.recipient_name || messages.recipientName)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="block text-sm">
               <span className="mb-1 block text-neutral-600">{messages.recipientName}</span>
               <input
@@ -184,8 +244,20 @@ export function CheckoutClient({ locale, messages, siteHints, shippingFee }: Pro
               <input
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPhone(next);
+                  if (
+                    next.trim() &&
+                    (formError === messages.errorPhoneRequired ||
+                      formError === messages.savedAddressPhoneMissing)
+                  ) {
+                    setFormError(null);
+                  }
+                }}
+                required
                 autoComplete="tel"
+                inputMode="tel"
               />
             </label>
             <label className="block text-sm">
